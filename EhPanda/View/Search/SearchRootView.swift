@@ -40,7 +40,8 @@ struct SearchRootView: View {
                         store.send(.setKeyword(keyword))
                         store.send(.setNavigation(.search))
                     },
-                    removeKeywordAction: { store.send(.removeHistoryKeyword($0)) }
+                    removeKeywordAction: { store.send(.removeHistoryKeyword($0)) },
+                    clearHistoryGalleriesAction: { store.send(.clearHistoryGalleries) }
                 )
             }
             .sheet(item: $store.route.sending(\.setNavigation).filters) { _ in
@@ -149,6 +150,7 @@ private struct SuggestionsPanel: View {
     private let navigateQuickSearchAction: () -> Void
     private let searchKeywordAction: (String) -> Void
     private let removeKeywordAction: (String) -> Void
+    private let clearHistoryGalleriesAction: () -> Void
 
     init(
         historyKeywords: [String], historyGalleries: [Gallery],
@@ -156,7 +158,8 @@ private struct SuggestionsPanel: View {
         navigateGalleryAction: @escaping (String) -> Void,
         navigateQuickSearchAction: @escaping () -> Void,
         searchKeywordAction: @escaping (String) -> Void,
-        removeKeywordAction: @escaping (String) -> Void
+        removeKeywordAction: @escaping (String) -> Void,
+        clearHistoryGalleriesAction: @escaping () -> Void
     ) {
         self.historyKeywords = historyKeywords
         self.historyGalleries = historyGalleries
@@ -165,6 +168,7 @@ private struct SuggestionsPanel: View {
         self.navigateQuickSearchAction = navigateQuickSearchAction
         self.searchKeywordAction = searchKeywordAction
         self.removeKeywordAction = removeKeywordAction
+        self.clearHistoryGalleriesAction = clearHistoryGalleriesAction
     }
 
     var body: some View {
@@ -187,7 +191,8 @@ private struct SuggestionsPanel: View {
                 if !historyGalleries.isEmpty {
                     HistoryGalleriesSection(
                         galleries: historyGalleries,
-                        navigationAction: navigateGalleryAction
+                        navigationAction: navigateGalleryAction,
+                        clearAction: clearHistoryGalleriesAction
                     )
                 }
             }
@@ -374,14 +379,21 @@ private struct KeywordCell: View {
 private struct HistoryGalleriesSection: View {
     private let galleries: [Gallery]
     private let navigationAction: (String) -> Void
+    private let clearAction: () -> Void
 
-    init(galleries: [Gallery], navigationAction: @escaping (String) -> Void) {
+    init(galleries: [Gallery], navigationAction: @escaping (String) -> Void, clearAction: @escaping () -> Void) {
         self.galleries = galleries
         self.navigationAction = navigationAction
+        self.clearAction = clearAction
     }
 
     var body: some View {
-        SubSection(title: L10n.Localizable.SearchView.Section.Title.recentlySeen, showAll: false) {
+        SubSection(
+            title: L10n.Localizable.SearchView.Section.Title.recentlySeen, 
+            showAll: false,
+            withClearButton: true,
+            clearAction: clearAction
+        ) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
                     ForEach(galleries) { gallery in

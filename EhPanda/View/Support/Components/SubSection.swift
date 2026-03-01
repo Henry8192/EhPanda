@@ -10,6 +10,8 @@ import SwiftUI
 struct SubSection<Content: View>: View {
     private let title: String
     private let showAll: Bool
+    private let withClearButton: Bool
+    private let clearAction: (() -> Void)?
     private let tint: Color?
     private let isLoading: Bool?
     private let reloadAction: (() -> Void)?
@@ -18,6 +20,7 @@ struct SubSection<Content: View>: View {
 
     init(
         title: String, showAll: Bool = true,
+        withClearButton: Bool = false, clearAction: (() -> Void)? = nil,
         tint: Color? = nil, isLoading: Bool? = nil,
         reloadAction: (() -> Void)? = nil,
         showAllAction: @escaping () -> Void = {},
@@ -25,6 +28,8 @@ struct SubSection<Content: View>: View {
     ) {
         self.title = title
         self.showAll = showAll
+        self.withClearButton = withClearButton
+        self.clearAction = clearAction
         self.tint = tint
         self.isLoading = isLoading
         self.reloadAction = reloadAction
@@ -49,6 +54,13 @@ struct SubSection<Content: View>: View {
                 .allowsHitTesting(reloadAction != nil)
                 .foregroundColor(.primary)
                 Spacer()
+                if withClearButton {
+                    Button(action: { clearAction?() }) {
+                        Image(systemSymbol: .trash)
+                            .imageScale(.small)
+                            .foregroundColor(.red)
+                    }
+                }
                 Button(action: showAllAction) {
                     Text(L10n.Localizable.SubSection.Button.showAll).font(.subheadline)
                 }

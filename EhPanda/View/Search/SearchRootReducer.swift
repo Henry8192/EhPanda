@@ -79,6 +79,9 @@ struct SearchRootReducer {
         case removeHistoryKeyword(String)
         case fetchHistoryGalleries
         case fetchHistoryGalleriesDone([Gallery])
+        
+        case clearHistoryGalleries
+        case clearHistoryGalleriesDone
 
         case search(SearchReducer.Action)
         case filters(FiltersReducer.Action)
@@ -163,6 +166,16 @@ struct SearchRootReducer {
 
             case .fetchHistoryGalleriesDone(let galleries):
                 state.historyGalleries = Array(galleries.prefix(min(galleries.count, 10)))
+                return .none
+                
+            case .clearHistoryGalleries:
+                return .run { send in
+                    await databaseClient.clearHistoryGalleries()
+                    await send(.clearHistoryGalleriesDone)
+                }
+                
+            case .clearHistoryGalleriesDone:
+                state.historyGalleries = []
                 return .none
 
             case .search(.fetchGalleries(let keyword)):
